@@ -1,0 +1,11 @@
+[package]
+name = "raytracing-rs"
+version = "0.1.0"
+authors = ["imoegirl <imoegirl@outlook.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+math = {path = "./math"}
+pbr = "1.0.3"
