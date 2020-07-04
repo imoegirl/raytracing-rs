@@ -3,7 +3,7 @@ use std::ops::{Add, Sub, Neg, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssi
 use std::cmp::PartialEq;
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vector3{
     pub x: f64,
     pub y: f64,
@@ -12,8 +12,12 @@ pub struct Vector3{
 }
 
 impl Vector3 {
-    pub fn default() -> Self {
+    pub fn zero() -> Self {
         Self{ x: 0.0, y: 0.0, z: 0.0, w: 0.0 }
+    }
+
+    pub fn one() -> Self {
+        Self{ x: 1.0, y: 1.0, z: 1.0, w: 0.0 }
     }
 
     pub fn new(x: f64, y: f64, z: f64) -> Self {
@@ -185,3 +189,30 @@ impl PartialEq for Vector3 {
         self.w == other.w
     }
 }
+
+
+// impl <'a, 'b> Add<&'b Vector3> for &'a Vector3 {
+//     type Output = Vector3;
+
+//     fn add(self, other: &'b Vector3) -> Vector3 {
+//         Vector3 {
+//             x: self.x + other.x,
+//             y: self.y + other.y,
+//             z: self.z + other.z,
+//             w: self.w
+//         }
+//     }
+// }
+
+// impl Mul<f64> for &Vector3 {
+//     type Output = Vector3;
+
+//     fn mul(self, num: f64) -> Vector3 {
+//         Vector3 {
+//             x: self.x * num,
+//             y: self.y * num,
+//             z: self.z * num,
+//             w: self.w
+//         }
+//     }
+// }
