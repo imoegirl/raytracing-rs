@@ -2,10 +2,10 @@
 // use std::fs::File;
 
 extern crate math;
-use math::vector::Vector3;
+use math::Vector3;
 
 extern crate cg;
-use cg::ray::Ray;
+use cg::Ray;
 
 // extern crate pbr;
 // use pbr::ProgressBar;
@@ -63,7 +63,27 @@ fn main() -> std::io::Result<()>{
 }
 
 fn ray_color(r: &Ray) -> Vector3 {
-    let unit_direction = r.direction.normalized();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
+    let t = hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, r);
+
+    if t > 0.0 {
+        let vn = (r.at(t) - Vector3::new(0.0, 0.0, -1.0)).normalized();
+        Vector3::new(vn.x + 1.0, vn.y + 1.0, vn.z + 1.0) * 0.5
+    }else{
+        let unit_direction = r.direction.normalized();
+        let t = 0.5 * (unit_direction.y + 1.0);
+        Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
+    }
+}
+
+fn hit_sphere(center: Vector3, radius: f64, r: &Ray) -> f64 {
+    let oc = r.origin - center;
+    let a = Vector3::dot(r.direction, r.direction);
+    let b = Vector3::dot(oc, r.direction) * 2.0;
+    let c = Vector3::dot(oc, oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    if discriminant < 0.0 {
+         -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }

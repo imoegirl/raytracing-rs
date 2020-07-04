@@ -1,5 +1,5 @@
 extern crate math;
-use math::vector::Vector3;
+use math::Vector3;
 
 #[derive(Debug)]
 pub struct Ray {

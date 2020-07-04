@@ -38,6 +38,7 @@ impl Vector3 {
         let ny = self.y / num;
         let nz = self.z / num;
         let w = self.w;
+        
 
         Self {
             x: if nx.is_finite() { nx } else { 0.0 },
@@ -47,11 +48,11 @@ impl Vector3 {
         }
     }
 
-    pub fn dot(u: &Self, v: &Self) -> f64 {
+    pub fn dot(u: Self, v: Self) -> f64 {
         u.x * v.x + u.y * v.y + u.z * v.z
     }
 
-    pub fn cross(u: &Self, v: &Self) -> Self {
+    pub fn cross(u: Self, v: Self) -> Self {
         Self {
             x: u.y * v.z - u.z * v.y,
             y: u.z * v.x - u.x * v.z,
