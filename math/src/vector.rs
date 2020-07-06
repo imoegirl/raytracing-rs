@@ -24,6 +24,34 @@ impl Vector3 {
         Self { x, y, z, w: 0.0 }
     }
 
+    pub fn random() -> Self {
+        Vector3 {
+            x: crate::random_double(),
+            y: crate::random_double(),
+            z: crate::random_double(),
+            w: 0.0,
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Vector3 {
+            x: crate::random_double_of_range(min, max),
+            y: crate::random_double_of_range(min, max),
+            z: crate::random_double_of_range(min, max),
+            w: 0.0
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Self::random_range(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
     pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }

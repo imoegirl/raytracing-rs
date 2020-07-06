@@ -5,7 +5,7 @@ extern crate math;
 use math::Vector3;
 
 extern crate cg;
-use cg::Ray;
+use cg::{ Ray, Hitable, HitRecord, HittableList, Sphere, Camera };
 
 // extern crate pbr;
 // use pbr::ProgressBar;
@@ -16,39 +16,45 @@ extern crate image;
 fn main() -> std::io::Result<()>{
 
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width: u32 = 1920;
+    let image_width: u32 = 384;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
+    let samples_per_pixel: f64 = 100.0;
     let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
+    let max_depth: u32 = 2;
     
-    let origin = Vector3::zero();
-    let horizontal = Vector3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vector3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vector3::new(0.0, 0.0, focal_length);
-
-    dbg!(&lower_left_corner);
+    // create rendering things
+    let mut hittable_list = HittableList::new();
+    let sphere1 = Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5);
+    let sphere2 = Sphere::new(Vector3::new(0.0, -100.5, -1.0), 100.0);
+    hittable_list.add(Box::new(sphere1));
+    hittable_list.add(Box::new(sphere2));
 
     // let mut pb = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
     // pb.format("╢▌▌░╟");
+
+    let camera = Camera::new(aspect_ratio,viewport_height, focal_length);
 
     let mut imgbuf = image::ImageBuffer::new(image_width, image_height);
 
     // j is row index, and i is col index
     for(i, j, pixel) in imgbuf.enumerate_pixels_mut() {
-        // let r: u8 = ((x as f64) / ((image_width - 1) as f64) * 255.999) as u8;
-        // let g: u8 = ((y as f64) / ((image_height - 1) as f64) * 255.999) as u8;
-        // let b: u8 = (0.25 * 255.999) as u8;
-        // *pixel = image::Rgb([r, g, b]);
-        // pb.inc();
 
-        // revert
+        // upside down
         let j = (image_height - 1) - j;
 
-        let u = i as f64 / (image_width -1) as f64;
-        let v = j as f64 / (image_height - 1) as f64;
-        let r = Ray::new(origin, lower_left_corner + horizontal * u + vertical * v - origin);
-        let color = ray_color(&r) * 255.999;
+        let mut pixel_color = Vector3::zero();
+
+        for s in 0..samples_per_pixel as usize {
+            let u = (i as f64 + math::random_double()) / (image_width -1) as f64;
+            let v = (j as f64 + math::random_double()) / (image_height - 1) as f64;
+            let r = camera.get_ray(u, v);
+            let ray_color = ray_color(&r, &hittable_list, max_depth);
+            pixel_color += ray_color;
+        }
+        
+        let color = get_samples_color(pixel_color, samples_per_pixel);
+
         let r = color.x as u8;
         let g = color.y as u8;
         let b = color.z as u8;
@@ -57,33 +63,87 @@ fn main() -> std::io::Result<()>{
     }
 
     imgbuf.save("generated.png").unwrap();
-
   
     Ok(())
 }
 
-fn ray_color(r: &Ray) -> Vector3 {
-    let t = hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, r);
+fn get_samples_color(ray_color: Vector3, samples_per_pixel: f64) -> Vector3 {
+    let mut r = ray_color.x;
+    let mut g = ray_color.y;
+    let mut b = ray_color.z;
 
-    if t > 0.0 {
-        let vn = (r.at(t) - Vector3::new(0.0, 0.0, -1.0)).normalized();
-        Vector3::new(vn.x + 1.0, vn.y + 1.0, vn.z + 1.0) * 0.5
-    }else{
-        let unit_direction = r.direction.normalized();
-        let t = 0.5 * (unit_direction.y + 1.0);
-        Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
-    }
+    let scale = 1.0 / samples_per_pixel;
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    let max_value = 256.0;
+    let color_min = 0.0;
+    let color_max = 0.999;
+
+    r = max_value * math::clamp(r, color_min, color_max);
+    g = max_value * math::clamp(g, color_min, color_max);
+    b = max_value * math::clamp(b, color_min, color_max);
+
+    Vector3::new(r, g, b)
 }
 
+
+fn ray_color(r: &Ray, world: &dyn Hitable, depth: u32) -> Vector3 {
+    if depth <= 0 {
+        return Vector3::zero();
+    }
+
+    let mut rec = HitRecord::default();
+    if world.hit(r, 0.0, std::f64::INFINITY, &mut rec) {
+        // return (rec.normal + Vector3::one()) * 0.5
+        let target = rec.p + rec.normal + Vector3::random_in_unit_sphere();
+        let ray = Ray::new(rec.p, target - rec.p);
+        return ray_color(&ray, world, depth - 1) * 0.5;
+    }
+
+    let unit_direction = r.direction.normalized();
+    let t = 0.5 * (unit_direction.y + 1.0);
+
+    return Vector3::one() * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t;
+
+}
+
+// fn ray_color(r: &Ray) -> Vector3 {
+//     let t = hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, r);
+
+//     if t > 0.0 {
+//         let vn = (r.at(t) - Vector3::new(0.0, 0.0, -1.0)).normalized();
+//         Vector3::new(vn.x + 1.0, vn.y + 1.0, vn.z + 1.0) * 0.5
+//     }else{
+//         let unit_direction = r.direction.normalized();
+//         let t = 0.5 * (unit_direction.y + 1.0);
+//         Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
+//     }
+// }
+
+#[allow(dead_code)]
 fn hit_sphere(center: Vector3, radius: f64, r: &Ray) -> f64 {
+    // let oc = r.origin - center;
+    // let a = Vector3::dot(r.direction, r.direction);
+    // let b = Vector3::dot(oc, r.direction) * 2.0;
+    // let c = Vector3::dot(oc, oc) - radius * radius;
+    // let discriminant = b * b - 4.0 * a * c;
+    // if discriminant < 0.0 {
+    //      -1.0
+    // } else {
+    //     (-b - discriminant.sqrt()) / (2.0 * a)
+    // }
+
     let oc = r.origin - center;
-    let a = Vector3::dot(r.direction, r.direction);
-    let b = Vector3::dot(oc, r.direction) * 2.0;
-    let c = Vector3::dot(oc, oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = r.direction.length_squared();
+    let half_b = Vector3::dot(oc, r.direction);
+    let c = oc.length_squared() - radius * radius;
+    let discriminant = half_b * half_b - a * c;
     if discriminant < 0.0 {
          -1.0
     } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
+        (-half_b - discriminant.sqrt()) / a
     }
+
 }
