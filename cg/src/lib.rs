@@ -1,23 +1,27 @@
 mod ray;
 pub use ray::Ray;
 
-// use ray::Ray;
+mod hittable;
+pub use hittable::HitRecord;
+pub use hittable::Hitable;
+
+mod hittable_list;
+pub use hittable_list::HittableList;
+
+mod sphere;
+pub use sphere::Sphere;
+
 
 // extern crate math;
-// use math::vector::Vector3;
+// use math::Vector3;
 
 // #[cfg(test)]
 // mod tests {
 //     use super::*;
 //     #[test]
 //     fn it_works() {
-//         let origin = Vector3::zero();
-//         let direction = Vector3::new(1.0, 1.0, 0.0);
-//         let ray = Ray::new(origin, direction);
-
-//         assert_eq!(ray.origin, Vector3::new(0.0, 0.0, 0.0));
-//         assert_eq!(ray.direction, Vector3::new(1.0, 1.0, 0.0));
-//         assert_eq!(ray.at(5.0), Vector3::new(5.0, 5.0, 0.0));
-//         assert_eq!(ray.direction, Vector3::new(1.0, 1.0, 0.0));
+//         let rec = Box::new(HitRecord::new(Vector3::zero(), Vector3::one(), 1.2, false));
+//         let rec2 = HitRecord::new(Vector3::zero(), Vector3::one(), 1.2, false);
+//         assert_eq!( rec.t , rec2.t );
 //     }
 // }
