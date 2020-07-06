@@ -11,6 +11,13 @@ pub use hittable_list::HittableList;
 mod sphere;
 pub use sphere::Sphere;
 
+mod camera;
+pub use camera::Camera;
+
+extern crate math;
+pub use math::Vector3;
+
+
 
 // extern crate math;
 // use math::Vector3;
