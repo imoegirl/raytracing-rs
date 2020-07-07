@@ -14,8 +14,13 @@ pub use sphere::Sphere;
 mod camera;
 pub use camera::Camera;
 
+mod material;
+pub use material::Material;
+
 extern crate math;
 pub use math::Vector3;
+
+
 
 
 

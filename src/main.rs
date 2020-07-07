@@ -33,7 +33,7 @@ fn main(){
     hittable_list.add(Box::new(sphere1));
     hittable_list.add(Box::new(sphere2));
 
-    // let mut pb = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
+    // let mut pb = ProgressBar::new((image_width * image_height) as u64);
     // pb.format("╢▌▌░╟");
 
     let camera = Camera::new(aspect_ratio,viewport_height, focal_length);
@@ -51,7 +51,6 @@ fn main(){
             let y = (image_height - 1) - j;
 
             let mut pixel_color = Vector3::zero();
-
             for _s in 0..samples_per_pixel as usize {
                 let u = (x as f64 + math::random_double()) / (image_width -1) as f64;
                 let v = (y as f64 + math::random_double()) / (image_height - 1) as f64;
@@ -67,6 +66,8 @@ fn main(){
             let b = color.z as u8;
 
             *pixel = image::Rgb([r, g, b]);
+
+            // pb.inc();
         }
     }
 
@@ -74,11 +75,6 @@ fn main(){
   
     let elapsed_sec = now.elapsed().as_secs();
     println!("Elapsed: {}", elapsed_sec);
-}
-
-#[allow(dead_code)]
-fn set_pixel(_imgbuf: &mut image::ImageBuffer<image::Rgb<u8>, std::vec::Vec<u8>>) {
-
 }
 
 

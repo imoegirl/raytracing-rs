@@ -1,11 +1,13 @@
 extern crate math;
 use math::Vector3;
 use crate::Ray;
+use crate::Material;
 
 #[derive(Debug)]
 pub struct HitRecord {
     pub p: Vector3,
     pub normal: Vector3,
+    mat_ptr: &dyn Material,
     pub t: f64,
     pub front_face: bool,
 }
