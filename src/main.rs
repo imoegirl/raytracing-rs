@@ -16,12 +16,12 @@ extern crate image;
 fn main() -> std::io::Result<()>{
 
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width: u32 = 384;
+    let image_width: u32 = 358;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel: f64 = 100.0;
     let viewport_height = 2.0;
     let focal_length = 1.0;
-    let max_depth: u32 = 2;
+    let max_depth: u32 = 50;
     
     // create rendering things
     let mut hittable_list = HittableList::new();
