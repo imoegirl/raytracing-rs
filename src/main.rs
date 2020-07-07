@@ -16,7 +16,7 @@ extern crate image;
 fn main() -> std::io::Result<()>{
 
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width: u32 = 358;
+    let image_width: u32 = 1920;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel: f64 = 100.0;
     let viewport_height = 2.0;
@@ -73,9 +73,9 @@ fn get_samples_color(ray_color: Vector3, samples_per_pixel: f64) -> Vector3 {
     let mut b = ray_color.z;
 
     let scale = 1.0 / samples_per_pixel;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r = (r * scale).sqrt();
+    g = (g * scale).sqrt();
+    b = (b * scale).sqrt();
 
     let max_value = 256.0;
     let color_min = 0.0;
@@ -95,7 +95,7 @@ fn ray_color(r: &Ray, world: &dyn Hitable, depth: u32) -> Vector3 {
     }
 
     let mut rec = HitRecord::default();
-    if world.hit(r, 0.0, std::f64::INFINITY, &mut rec) {
+    if world.hit(r, 0.001, std::f64::INFINITY, &mut rec) {
         // return (rec.normal + Vector3::one()) * 0.5
         let target = rec.p + rec.normal + Vector3::random_in_unit_sphere();
         let ray = Ray::new(rec.p, target - rec.p);
