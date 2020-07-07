@@ -12,11 +12,14 @@ use cg::{ Ray, Hitable, HitRecord, HittableList, Sphere, Camera };
 
 extern crate image;
 
+// use std::thread;
+use std::time::Instant;
 
-fn main() -> std::io::Result<()>{
 
+fn main(){
+    let now = Instant::now();
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width: u32 = 512;
+    let image_width: u32 = 300;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel: f64 = 100.0;
     let viewport_height = 2.0;
@@ -38,34 +41,46 @@ fn main() -> std::io::Result<()>{
     let mut imgbuf = image::ImageBuffer::new(image_width, image_height);
 
     // j is row index, and i is col index
-    for(i, j, pixel) in imgbuf.enumerate_pixels_mut() {
+    // for(i, j, pixel) in imgbuf.enumerate_pixels_mut() {
+    for j in 0..image_height {
+        for i in 0..image_width {
+            let pixel = imgbuf.get_pixel_mut(i, j);
+            // let c = 0 as u8;
+            // *pixel = image::Rgb([c, c, c]);
+            let x = i;
+            let y = (image_height - 1) - j;
 
-        // upside down
-        let j = (image_height - 1) - j;
+            let mut pixel_color = Vector3::zero();
 
-        let mut pixel_color = Vector3::zero();
+            for _s in 0..samples_per_pixel as usize {
+                let u = (x as f64 + math::random_double()) / (image_width -1) as f64;
+                let v = (y as f64 + math::random_double()) / (image_height - 1) as f64;
+                let r = camera.get_ray(u, v);
+                let ray_color = ray_color(&r, &hittable_list, max_depth);
+                pixel_color += ray_color;
+            }
+            
+            let color = get_samples_color(pixel_color, samples_per_pixel);
 
-        for _s in 0..samples_per_pixel as usize {
-            let u = (i as f64 + math::random_double()) / (image_width -1) as f64;
-            let v = (j as f64 + math::random_double()) / (image_height - 1) as f64;
-            let r = camera.get_ray(u, v);
-            let ray_color = ray_color(&r, &hittable_list, max_depth);
-            pixel_color += ray_color;
+            let r = color.x as u8;
+            let g = color.y as u8;
+            let b = color.z as u8;
+
+            *pixel = image::Rgb([r, g, b]);
         }
-        
-        let color = get_samples_color(pixel_color, samples_per_pixel);
-
-        let r = color.x as u8;
-        let g = color.y as u8;
-        let b = color.z as u8;
-
-        *pixel = image::Rgb([r, g, b]);
     }
 
     imgbuf.save("generated.png").unwrap();
   
-    Ok(())
+    let elapsed_sec = now.elapsed().as_secs();
+    println!("Elapsed: {}", elapsed_sec);
 }
+
+#[allow(dead_code)]
+fn set_pixel(_imgbuf: &mut image::ImageBuffer<image::Rgb<u8>, std::vec::Vec<u8>>) {
+
+}
+
 
 fn get_samples_color(ray_color: Vector3, samples_per_pixel: f64) -> Vector3 {
     let mut r = ray_color.x;
