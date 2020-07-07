@@ -52,6 +52,27 @@ impl Vector3 {
         }
     }
 
+    pub fn random_unit_vector() -> Self {
+        let a = crate::random_double_of_range(0.0, std::f64::consts::PI);
+        let z = crate::random_double_of_range(-1.0, 1.0);
+        let r = (1.0 - z * z).sqrt();
+        Self {
+            x: r * a.cos(),
+            y: r * a.sin(),
+            z,
+            w: 0.0
+        }
+    }
+
+    pub fn random_in_hemisphere(normal: Vector3) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        if Self::dot(in_unit_sphere, normal) > 0.0 {
+            in_unit_sphere
+        }else{
+            -in_unit_sphere
+        }
+    }
+
     pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
