@@ -30,6 +30,16 @@ pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
     }
 }
 
+pub fn random_in_unit_disk() -> Vector3 {
+    let mut p = Vector3::zero();
+    loop {
+        p = Vector3::new(random_double_of_range(-1.0, 1.0), random_double_of_range(-1.0, 1.0), 0.0);
+        if p.length_squared() >= 1.0 {continue}
+        break;
+    }
+    p
+}
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;

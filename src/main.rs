@@ -22,53 +22,57 @@ fn main(){
     let image_width: u32 = 1920;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel: f64 = 100.0;
-    let viewport_height = 2.0;
-    let focal_length = 1.0;
+    // let viewport_height = 2.0;
+    // let focal_length = 1.0;
     let max_depth: u32 = 50;
     
     // create rendering things
-    let mut hittable_list = HittableList::new();
-    let sphere1 = Sphere::new(
-        Vector3::new(0.0, 0.0, -1.0), 
-        0.5, 
-        Lambertain::new(Vector3::new(0.1, 0.2, 0.5)));
+    // let mut hittable_list = HittableList::new();
+    // let sphere1 = Sphere::new(
+    //     Vector3::new(0.0, 0.0, -1.0), 
+    //     0.5, 
+    //     Lambertain::new(Vector3::new(0.1, 0.2, 0.5)));
     
-    let sphere2 = Sphere::new(
-        Vector3::new(0.0, -100.5, -1.0), 
-        100.0, 
-        Lambertain::new(Vector3::new(0.8, 0.8, 0.0)));
+    // let sphere2 = Sphere::new(
+    //     Vector3::new(0.0, -100.5, -1.0), 
+    //     100.0, 
+    //     Lambertain::new(Vector3::new(0.8, 0.8, 0.0)));
 
-    let sphere3 = Sphere::new(
-        Vector3::new(1.0, 0.0, -1.0), 
-        0.5, 
-        Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3));
+    // let sphere3 = Sphere::new(
+    //     Vector3::new(1.0, 0.0, -1.0), 
+    //     0.5, 
+    //     Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3));
 
 
-    let sphere4 = Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.0), 
-        0.5, 
-        Dielectric::new(1.5));
+    // let sphere4 = Sphere::new(
+    //     Vector3::new(-1.0, 0.0, -1.0), 
+    //     0.5, 
+    //     Dielectric::new(1.5));
 
-    let sphere5 = Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.0),
-        -0.45,
-        Dielectric::new(1.5)
-    );
+    // let sphere5 = Sphere::new(
+    //     Vector3::new(-1.0, 0.0, -1.0),
+    //     -0.45,
+    //     Dielectric::new(1.5)
+    // );
 
-    hittable_list.add(Box::new(sphere1));
-    hittable_list.add(Box::new(sphere2));
-    hittable_list.add(Box::new(sphere3));
-    hittable_list.add(Box::new(sphere4));
-    hittable_list.add(Box::new(sphere5));
+    // hittable_list.add(Box::new(sphere1));
+    // hittable_list.add(Box::new(sphere2));
+    // hittable_list.add(Box::new(sphere3));
+    // hittable_list.add(Box::new(sphere4));
+    // hittable_list.add(Box::new(sphere5));
 
     // let mut pb = ProgressBar::new((image_width * image_height) as u64);
     // pb.format("╢▌▌░╟");
 
+    let world = random_scene();
+
     //let camera = Camera::new(aspect_ratio,viewport_height, focal_length);
-    let lookfrom = Vector3::new(-2.0, 2.0, 1.0);
+    let lookfrom = Vector3::new(13.0, 2.0, 3.0);
     let lookat = Vector3::new(0.0, 0.0, -1.0);
     let vup = Vector3::new(0.0, 1.0, 0.0);
-    let camera = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio);
+    let dist_to_focus = 10.0; //(lookfrom - lookat).length();
+    let aperture = 0.1;
+    let camera = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
 
     let mut imgbuf = image::ImageBuffer::new(image_width, image_height);
 
@@ -87,7 +91,7 @@ fn main(){
                 let u = (x as f64 + math::random_double()) / (image_width -1) as f64;
                 let v = (y as f64 + math::random_double()) / (image_height - 1) as f64;
                 let r = camera.get_ray(u, v);
-                let ray_color = ray_color(&r, &hittable_list, max_depth);
+                let ray_color = ray_color(&r, &world, max_depth);
                 pixel_color += ray_color;
             }
             
@@ -109,6 +113,66 @@ fn main(){
     println!("Elapsed: {}", elapsed_sec);
 }
 
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+    let ground_material = Lambertain::new(Vector3::new(0.5, 0.5, 0.5));
+    world.add(
+        Box::new(Sphere::new(
+            Vector3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            ground_material,
+        ))
+    );
+
+    let mut a = -11;
+    let mut b = -11;
+
+    while a < 11 {
+        while b < 11 {
+            let choose_mat = math::random_double();
+            let center = Vector3::new(
+                a as f64 + 0.9 * math::random_double(),
+                0.2,
+                b as f64 + 0.9 * math::random_double(),
+            );
+
+            if (center - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let mat = if choose_mat < 0.8 {
+                    let albedo = Vector3::random() * Vector3::random();
+                    Lambertain::new(albedo)
+                }
+                else if choose_mat < 0.95 {
+                    let albedo = Vector3::random_range(0.5, 1.0);
+                    let fuzz = math::random_double_of_range(0.0, 0.5);
+                    Metal::new(albedo, fuzz)
+                }
+                else {
+                    Dielectric::new(1.5)
+                };
+
+                let sphere = Sphere::new(center, 0.2, mat);
+                world.add(Box::new(sphere));
+            }
+
+            b += 1;
+        }
+
+        a += 1;
+    }
+
+    let mat1 = Dielectric::new(1.5);
+    let sphere1 = Sphere::new(Vector3::new(0.0, 1.0, 0.0), 1.0, mat1);
+    let mat2 = Lambertain::new(Vector3::new(0.4, 0.2, 0.1));
+    let sphere2 = Sphere::new(Vector3::new(-4.0, 1.0, 0.0), 1.0, mat2);
+    let mat3 = Metal::new(Vector3::new(0.7, 0.6, 0.5), 0.0);
+    let sphere3 = Sphere::new(Vector3::new(4.0, 1.0, 0.0), 1.0, mat3);
+
+    world.add(Box::new(sphere1));
+    world.add(Box::new(sphere2));
+    world.add(Box::new(sphere3));
+
+    world
+}
 
 fn get_samples_color(ray_color: Vector3, samples_per_pixel: f64) -> Vector3 {
     let mut r = ray_color.x;
