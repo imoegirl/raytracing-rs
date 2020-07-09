@@ -2,12 +2,14 @@ extern crate math;
 use math::Vector3;
 use crate::Ray;
 use crate::Material;
+use crate::Lambertain;
+
 
 #[derive(Debug)]
 pub struct HitRecord {
     pub p: Vector3,
     pub normal: Vector3,
-    mat_ptr: &dyn Material,
+    pub mat: Material,
     pub t: f64,
     pub front_face: bool,
 }
@@ -18,12 +20,14 @@ impl HitRecord {
             p: Vector3::zero(),
             normal: Vector3::zero(),
             t: 0.0,
-            front_face: false
+            front_face: false,
+            mat: Material::None,
         }
     }
 
     pub fn new(p: Vector3, normal: Vector3, t: f64, front_face: bool) -> Self {
-        HitRecord { p, normal, t, front_face }
+        let mat = Lambertain::new(Vector3::zero());
+        HitRecord { p, normal, t, front_face, mat: mat }
     }
 
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vector3) {
@@ -36,6 +40,7 @@ impl HitRecord {
         self.normal = from_record.normal;
         self.t = from_record.t;
         self.front_face = from_record.front_face;
+        self.mat = from_record.mat;
     }
 }
 

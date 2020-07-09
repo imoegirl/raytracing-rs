@@ -16,9 +16,15 @@ pub use camera::Camera;
 
 mod material;
 pub use material::Material;
+pub use material::Lambertain;
+pub use material::Metal;
+pub use material::Dielectric;
+pub use material::Scatterable;
+
 
 extern crate math;
 pub use math::Vector3;
+
 
 
 

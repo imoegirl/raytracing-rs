@@ -163,6 +163,32 @@ impl Mul<f64> for Vector3 {
     }
 }
 
+impl Mul<Vector3> for f64 {
+    type Output = Vector3;
+
+    fn mul(self, other: Vector3) -> Vector3 {
+        Vector3 {
+            x: self * other.x,
+            y: self * other.y,
+            z: self * other.z,
+            w: other.w
+        }
+    }
+}
+
+impl Mul<Vector3> for Vector3 {
+    type Output = Self;
+
+    fn mul(self, other: Vector3) -> Vector3 {
+        Vector3{
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+            w: self.w
+        }
+    }
+}
+
 impl Div<f64> for Vector3 {
     type Output = Self;
 

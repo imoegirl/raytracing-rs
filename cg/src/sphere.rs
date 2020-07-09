@@ -1,6 +1,7 @@
 use crate::Hitable;
 use crate::HitRecord;
 use crate::Ray;
+use crate::Material;
 
 extern crate math;
 use math::Vector3;
@@ -9,11 +10,12 @@ pub struct Sphere {
     pub hit_rec: HitRecord,
     pub center: Vector3,
     pub radius: f64,
+    pub mat: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64) -> Self {
-        Sphere { hit_rec: HitRecord::default(), center, radius }
+    pub fn new(center: Vector3, radius: f64, mat: Material) -> Self {
+        Sphere { hit_rec: HitRecord::default(), center, radius, mat}
     }
 }
 
@@ -35,6 +37,7 @@ impl Hitable for Sphere {
 
                 let outward_normal = (rec.p - self.center) / self.radius;
                 rec.set_face_normal(r, outward_normal);
+                rec.mat = self.mat;
                 return true;
             }
             temp = (-half_b + root) / a;
@@ -43,6 +46,7 @@ impl Hitable for Sphere {
                 rec.p = r.at(rec.t);
                 let outward_normal = (rec.p - self.center) / self.radius;
                 rec.set_face_normal(r, outward_normal);
+                rec.mat = self.mat;
                 return true;
             }
         }
