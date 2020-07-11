@@ -5,4 +5,4 @@ rust implementation of ray tracing in one weekend
 
 最终渲染图: 
 
-![generated.png](https://ae04.alicdn.com/kf/Hb325664360524c95a61f1d033c680493v.jpg)
+![generated.png](generated.png)
