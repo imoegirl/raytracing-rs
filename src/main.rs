@@ -7,8 +7,8 @@ use math::Vector3;
 extern crate cg;
 use cg::{ Ray, Hitable, HitRecord, HittableList, Sphere, Camera, Lambertain, Metal, Dielectric, Scatterable };
 
-// extern crate pbr;
-// use pbr::ProgressBar;
+extern crate pbr;
+use pbr::ProgressBar;
 
 extern crate image;
 
@@ -22,67 +22,27 @@ fn main(){
     let image_width: u32 = 1920;
     let image_height: u32 = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel: f64 = 100.0;
-    // let viewport_height = 2.0;
-    // let focal_length = 1.0;
     let max_depth: u32 = 50;
     
-    // create rendering things
-    // let mut hittable_list = HittableList::new();
-    // let sphere1 = Sphere::new(
-    //     Vector3::new(0.0, 0.0, -1.0), 
-    //     0.5, 
-    //     Lambertain::new(Vector3::new(0.1, 0.2, 0.5)));
-    
-    // let sphere2 = Sphere::new(
-    //     Vector3::new(0.0, -100.5, -1.0), 
-    //     100.0, 
-    //     Lambertain::new(Vector3::new(0.8, 0.8, 0.0)));
-
-    // let sphere3 = Sphere::new(
-    //     Vector3::new(1.0, 0.0, -1.0), 
-    //     0.5, 
-    //     Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3));
-
-
-    // let sphere4 = Sphere::new(
-    //     Vector3::new(-1.0, 0.0, -1.0), 
-    //     0.5, 
-    //     Dielectric::new(1.5));
-
-    // let sphere5 = Sphere::new(
-    //     Vector3::new(-1.0, 0.0, -1.0),
-    //     -0.45,
-    //     Dielectric::new(1.5)
-    // );
-
-    // hittable_list.add(Box::new(sphere1));
-    // hittable_list.add(Box::new(sphere2));
-    // hittable_list.add(Box::new(sphere3));
-    // hittable_list.add(Box::new(sphere4));
-    // hittable_list.add(Box::new(sphere5));
-
-    // let mut pb = ProgressBar::new((image_width * image_height) as u64);
-    // pb.format("╢▌▌░╟");
+    let mut pb = ProgressBar::new((image_width * image_height) as u64);
+    pb.format("╢▌▌░╟");
 
     let world = random_scene();
 
-    //let camera = Camera::new(aspect_ratio,viewport_height, focal_length);
     let lookfrom = Vector3::new(13.0, 2.0, 3.0);
-    let lookat = Vector3::new(0.0, 0.0, -1.0);
+    let lookat = Vector3::new(0.0, 0.0, 0.0);
     let vup = Vector3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0; //(lookfrom - lookat).length();
+    let dist_to_focus = 10.0;
     let aperture = 0.1;
     let camera = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
 
     let mut imgbuf = image::ImageBuffer::new(image_width, image_height);
 
     // j is row index, and i is col index
-    // for(i, j, pixel) in imgbuf.enumerate_pixels_mut() {
     for j in 0..image_height {
         for i in 0..image_width {
             let pixel = imgbuf.get_pixel_mut(i, j);
-            // let c = 0 as u8;
-            // *pixel = image::Rgb([c, c, c]);
+
             let x = i;
             let y = (image_height - 1) - j;
 
@@ -103,7 +63,7 @@ fn main(){
 
             *pixel = image::Rgb([r, g, b]);
 
-            // pb.inc();
+            pb.inc();
         }
     }
 
@@ -124,11 +84,8 @@ fn random_scene() -> HittableList {
         ))
     );
 
-    let mut a = -11;
-    let mut b = -11;
-
-    while a < 11 {
-        while b < 11 {
+    for a in -11..11 {
+        for b in -11.. 11 {
             let choose_mat = math::random_double();
             let center = Vector3::new(
                 a as f64 + 0.9 * math::random_double(),
@@ -153,11 +110,7 @@ fn random_scene() -> HittableList {
                 let sphere = Sphere::new(center, 0.2, mat);
                 world.add(Box::new(sphere));
             }
-
-            b += 1;
         }
-
-        a += 1;
     }
 
     let mat1 = Dielectric::new(1.5);
@@ -211,10 +164,6 @@ fn ray_color(r: &Ray, world: &dyn Hitable, depth: u32) -> Vector3 {
         }
 
         return Vector3::zero();
-
-        // let target = rec.p + Vector3::random_in_hemisphere(rec.normal);
-        // let ray = Ray::new(rec.p, target - rec.p);
-        // return ray_color(&ray, world, depth - 1) * 0.5;
     }
 
     let unit_direction = r.direction.normalized();
@@ -224,32 +173,8 @@ fn ray_color(r: &Ray, world: &dyn Hitable, depth: u32) -> Vector3 {
 
 }
 
-// fn ray_color(r: &Ray) -> Vector3 {
-//     let t = hit_sphere(Vector3::new(0.0, 0.0, -1.0), 0.5, r);
-
-//     if t > 0.0 {
-//         let vn = (r.at(t) - Vector3::new(0.0, 0.0, -1.0)).normalized();
-//         Vector3::new(vn.x + 1.0, vn.y + 1.0, vn.z + 1.0) * 0.5
-//     }else{
-//         let unit_direction = r.direction.normalized();
-//         let t = 0.5 * (unit_direction.y + 1.0);
-//         Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
-//     }
-// }
-
 #[allow(dead_code)]
 fn hit_sphere(center: Vector3, radius: f64, r: &Ray) -> f64 {
-    // let oc = r.origin - center;
-    // let a = Vector3::dot(r.direction, r.direction);
-    // let b = Vector3::dot(oc, r.direction) * 2.0;
-    // let c = Vector3::dot(oc, oc) - radius * radius;
-    // let discriminant = b * b - 4.0 * a * c;
-    // if discriminant < 0.0 {
-    //      -1.0
-    // } else {
-    //     (-b - discriminant.sqrt()) / (2.0 * a)
-    // }
-
     let oc = r.origin - center;
     let a = r.direction.length_squared();
     let half_b = Vector3::dot(oc, r.direction);
@@ -260,9 +185,4 @@ fn hit_sphere(center: Vector3, radius: f64, r: &Ray) -> f64 {
     } else {
         (-half_b - discriminant.sqrt()) / a
     }
-
-}
-
-fn change_vector3(origin: &mut Vector3) {
-    *origin = Vector3::new(1.0,1.1, 1.2);
 }
